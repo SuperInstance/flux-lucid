@@ -1,0 +1,27 @@
+[package]
+name = "flux-lucid"
+version = "0.1.0"
+edition = "2021"
+description = "Unified constraint theory ecosystem — CDCL, LLVM, AVX-512, GL(9) consensus, 9-channel intent"
+repository = "https://github.com/SuperInstance/flux-lucid"
+license = "Apache-2.0"
+authors = ["SuperInstance <forgemaster@superinstance.com>"]
+keywords = ["constraint", "safety", "holonomy", "consensus", "llvm"]
+categories = ["algorithms", "hardware-support", "science", "network-programming"]
+readme = "README.md"
+
+[dependencies]
+# Core constraint compilation
+constraint-theory-llvm = "0.1.1"
+# Fleet coordination with GL(9) ZHC
+holonomy-consensus = "0.1.1"
+serde = { version = "1.0", features = ["derive"] }
+
+[features]
+default = []
+# Enable direct x86-64 AVX-512 emission (bypasses LLVM)
+x86-64-emitter = []
+# Enable JIT compilation via Cranelift
+jit = ["constraint-theory-llvm/jit"]
+# Enable full fleet coordination features
+fleet = []
