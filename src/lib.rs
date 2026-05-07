@@ -19,6 +19,7 @@
 //!    A satisficer in 50ms beats an optimizer in 2000ms.
 
 pub mod intent;
+pub mod intent_compilation;
 pub mod navigation;
 
 // Re-export core types from sub-crates
