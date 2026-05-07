@@ -212,10 +212,13 @@ impl SoABatch {
             let hi = self.dual_uppers[i];
             // Path A: comparison
             let pass_a = v >= lo && v <= hi;
-            // Path B: subtraction (different execution unit)
-            let above_lo = v.wrapping_sub(lo);
-            let below_hi = hi.wrapping_sub(v);
-            let pass_b = above_lo >= 0 && below_hi >= 0;
+            // Path B: XOR-based signed-to-unsigned conversion (overflow-safe)
+            // XOR with 0x80000000 converts signed to unsigned range
+            // This eliminates subtraction overflow at INT_MAX/INT_MIN boundaries
+            let vu = (v as u32) ^ 0x80000000u32;
+            let lu = (lo as u32) ^ 0x80000000u32;
+            let hu = (hi as u32) ^ 0x80000000u32;
+            let pass_b = vu >= lu && vu <= hu;
             // Both paths must agree (if they disagree, flag as failure)
             results.push(pass_a && pass_b);
         }
