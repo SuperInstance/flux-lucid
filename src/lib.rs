@@ -21,6 +21,8 @@
 pub mod intent;
 pub mod intent_compilation;
 pub mod intent_emitter;
+pub mod beam_tolerance;
+pub mod soa_emitter;
 pub mod navigation;
 
 // Re-export core types from sub-crates
