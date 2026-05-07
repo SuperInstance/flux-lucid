@@ -20,6 +20,7 @@
 
 pub mod intent;
 pub mod intent_compilation;
+pub mod intent_emitter;
 pub mod navigation;
 
 // Re-export core types from sub-crates

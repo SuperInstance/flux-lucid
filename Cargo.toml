@@ -1,6 +1,6 @@
 [package]
 name = "flux-lucid"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "Unified constraint theory ecosystem — CDCL, LLVM, AVX-512, GL(9) consensus, 9-channel intent"
 repository = "https://github.com/SuperInstance/flux-lucid"
