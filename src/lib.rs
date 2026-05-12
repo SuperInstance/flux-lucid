@@ -19,6 +19,7 @@
 //!    A satisficer in 50ms beats an optimizer in 2000ms.
 
 pub mod beam_tolerance;
+pub mod dream;
 pub mod head_direction;
 pub mod intent;
 pub mod intent_compilation;

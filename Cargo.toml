@@ -1,12 +1,12 @@
 [package]
 name = "flux-lucid"
-version = "0.1.7"
+version = "0.2.0"
 edition = "2021"
-description = "Unified constraint theory ecosystem — CDCL, LLVM, AVX-512, GL(9) consensus, 9-channel intent"
+description = "Unified constraint theory ecosystem — CDCL, LLVM, AVX-512, GL(9) consensus, 9-channel intent, dream reconstruction"
 repository = "https://github.com/SuperInstance/flux-lucid"
 license = "Apache-2.0"
 authors = ["SuperInstance <forgemaster@superinstance.com>"]
-keywords = ["constraint", "safety", "holonomy", "consensus", "llvm"]
+keywords = ["constraint", "safety", "holonomy", "consensus", "dream"]
 categories = ["algorithms", "hardware-support", "science", "network-programming"]
 readme = "README.md"
 
