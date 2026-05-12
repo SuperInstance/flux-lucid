@@ -53,8 +53,8 @@ impl ClassificationStats {
             }
         }
         let total = int8 + int16 + int32 + dual;
-        let effective = int8 as f64 * 4.0 + int16 as f64 * 2.0
-            + int32 as f64 * 1.0 + dual as f64 * 0.5;
+        let effective =
+            int8 as f64 * 4.0 + int16 as f64 * 2.0 + int32 as f64 * 1.0 + dual as f64 * 0.5;
         let gain = effective / total as f64;
         Self {
             int8_count: int8,
@@ -74,34 +74,32 @@ pub fn check_with_precision(value: i32, lower: i32, upper: i32, precision: Preci
         Precision::INT8 => {
             // INT8 fast check: truncate to 8 bits
             // Only correct for values in [-128, 127]
-            let v = ((value as i8) as i32);
-            let lo = ((lower as i8) as i32);
-            let hi = ((upper as i8) as i32);
+            let v = (value as i8) as i32;
+            let lo = (lower as i8) as i32;
+            let hi = (upper as i8) as i32;
             lo <= v && v <= hi
         }
         Precision::INT16 => {
-            let v = ((value as i16) as i32);
-            let lo = ((lower as i16) as i32);
-            let hi = ((upper as i16) as i32);
+            let v = (value as i16) as i32;
+            let lo = (lower as i16) as i32;
+            let hi = (upper as i16) as i32;
             lo <= v && v <= hi
         }
-        Precision::INT32 => {
-            lower <= value && value <= upper
-        }
+        Precision::INT32 => lower <= value && value <= upper,
         Precision::DUAL => {
             // Dual redundant check: compute twice using different code paths
             // Path A: split into two comparisons
             let check_a = value >= lower;
             let check_b = value <= upper;
             let path_a = check_a && check_b;
-            
+
             // Path B: compute via subtraction (different execution path)
             // This defeats common hardware faults because the two paths
             // use different ALU operations
             let lower_ok = value.wrapping_sub(lower) >= 0;
             let upper_ok = upper.wrapping_sub(value) >= 0;
             let path_b = lower_ok && upper_ok;
-            
+
             // Both paths must agree
             path_a && path_b && (path_a == path_b)
         }
@@ -155,7 +153,9 @@ pub fn differential_test(
                 values[idx].abs() <= 127 && lowers[idx].abs() <= 127 && uppers[idx].abs() <= 127
             }
             Precision::INT16 => {
-                values[idx].abs() <= 32767 && lowers[idx].abs() <= 32767 && uppers[idx].abs() <= 32767
+                values[idx].abs() <= 32767
+                    && lowers[idx].abs() <= 32767
+                    && uppers[idx].abs() <= 32767
             }
             _ => true,
         };
@@ -231,21 +231,42 @@ mod tests {
                 2 => Precision::INT32,
                 _ => Precision::DUAL,
             };
-            directives.push(IntentDirective { precision, constraint_idx: i });
+            directives.push(IntentDirective {
+                precision,
+                constraint_idx: i,
+            });
         }
 
         let (mismatches, _) = differential_test(&values, &lowers, &uppers, &directives);
-        assert_eq!(mismatches, 0, "Expected zero mismatches for in-range values");
+        assert_eq!(
+            mismatches, 0,
+            "Expected zero mismatches for in-range values"
+        );
     }
 
     #[test]
     fn test_classification_stats() {
         let directives = vec![
-            IntentDirective { precision: Precision::INT8, constraint_idx: 0 },
-            IntentDirective { precision: Precision::INT8, constraint_idx: 1 },
-            IntentDirective { precision: Precision::INT16, constraint_idx: 2 },
-            IntentDirective { precision: Precision::INT32, constraint_idx: 3 },
-            IntentDirective { precision: Precision::DUAL, constraint_idx: 4 },
+            IntentDirective {
+                precision: Precision::INT8,
+                constraint_idx: 0,
+            },
+            IntentDirective {
+                precision: Precision::INT8,
+                constraint_idx: 1,
+            },
+            IntentDirective {
+                precision: Precision::INT16,
+                constraint_idx: 2,
+            },
+            IntentDirective {
+                precision: Precision::INT32,
+                constraint_idx: 3,
+            },
+            IntentDirective {
+                precision: Precision::DUAL,
+                constraint_idx: 4,
+            },
         ];
         let stats = ClassificationStats::from_directives(&directives);
         assert_eq!(stats.int8_count, 2);
@@ -262,11 +283,26 @@ mod tests {
         let lowers = vec![0, 0, 0, 0, 0];
         let uppers = vec![100, 100, 100, 100, 100];
         let directives = vec![
-            IntentDirective { precision: Precision::INT8, constraint_idx: 0 },
-            IntentDirective { precision: Precision::INT16, constraint_idx: 1 },
-            IntentDirective { precision: Precision::INT32, constraint_idx: 2 },
-            IntentDirective { precision: Precision::DUAL, constraint_idx: 3 },
-            IntentDirective { precision: Precision::INT8, constraint_idx: 4 },
+            IntentDirective {
+                precision: Precision::INT8,
+                constraint_idx: 0,
+            },
+            IntentDirective {
+                precision: Precision::INT16,
+                constraint_idx: 1,
+            },
+            IntentDirective {
+                precision: Precision::INT32,
+                constraint_idx: 2,
+            },
+            IntentDirective {
+                precision: Precision::DUAL,
+                constraint_idx: 3,
+            },
+            IntentDirective {
+                precision: Precision::INT8,
+                constraint_idx: 4,
+            },
         ];
         let (passed, failed) = batch_check_directed(&values, &lowers, &uppers, &directives);
         assert_eq!(passed, 5);
@@ -288,7 +324,10 @@ mod tests {
             } else {
                 Precision::DUAL
             };
-            directives.push(IntentDirective { precision, constraint_idx: i });
+            directives.push(IntentDirective {
+                precision,
+                constraint_idx: i,
+            });
         }
 
         let stats = ClassificationStats::from_directives(&directives);
@@ -296,7 +335,10 @@ mod tests {
         assert_eq!(stats.int16_count, 150);
         assert_eq!(stats.int32_count, 80);
         assert_eq!(stats.dual_count, 20);
-        assert!(stats.theoretical_throughput_gain > 3.0,
-            "Expected >3x throughput for AV mix, got {:.2}x", stats.theoretical_throughput_gain);
+        assert!(
+            stats.theoretical_throughput_gain > 3.0,
+            "Expected >3x throughput for AV mix, got {:.2}x",
+            stats.theoretical_throughput_gain
+        );
     }
 }

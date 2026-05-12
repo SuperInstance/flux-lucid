@@ -52,7 +52,7 @@
 /// 10 = 300° (SSE on hex grid)
 /// 11 = 330°
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct HeadDirection(u8);
 
 impl HeadDirection {
@@ -198,9 +198,18 @@ impl HeadDirection {
     /// All 12 discrete headings in order.
     pub fn all() -> [HeadDirection; 12] {
         [
-            HeadDirection(0), HeadDirection(1), HeadDirection(2), HeadDirection(3),
-            HeadDirection(4), HeadDirection(5), HeadDirection(6), HeadDirection(7),
-            HeadDirection(8), HeadDirection(9), HeadDirection(10), HeadDirection(11),
+            HeadDirection(0),
+            HeadDirection(1),
+            HeadDirection(2),
+            HeadDirection(3),
+            HeadDirection(4),
+            HeadDirection(5),
+            HeadDirection(6),
+            HeadDirection(7),
+            HeadDirection(8),
+            HeadDirection(9),
+            HeadDirection(10),
+            HeadDirection(11),
         ]
     }
 
@@ -219,12 +228,6 @@ impl HeadDirection {
 impl std::fmt::Display for HeadDirection {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}°", self.to_degrees() as u32)
-    }
-}
-
-impl Default for HeadDirection {
-    fn default() -> Self {
-        HeadDirection(0) // East = 0°
     }
 }
 
@@ -264,7 +267,12 @@ pub struct PositionedAgent {
 impl PositionedAgent {
     /// Create a new positioned agent.
     pub fn new(q: u16, r: u16, heading: HeadDirection, speed: u8) -> Self {
-        PositionedAgent { q, r, heading, speed }
+        PositionedAgent {
+            q,
+            r,
+            heading,
+            speed,
+        }
     }
 
     /// Create an agent at origin facing East with zero speed.
@@ -294,7 +302,12 @@ impl PositionedAgent {
         let r = ((val >> 32) & 0xFFFF) as u16;
         let heading = HeadDirection::from_nibble(((val >> 28) & 0xF) as u8);
         let speed = ((val >> 20) & 0xFF) as u8;
-        PositionedAgent { q, r, heading, speed }
+        PositionedAgent {
+            q,
+            r,
+            heading,
+            speed,
+        }
     }
 
     /// Check if two agents are at the same position regardless of heading/speed.
@@ -346,7 +359,10 @@ impl FleetSnapshot {
 
     /// Empty snapshot at a given time.
     pub fn empty(timestamp: u64) -> Self {
-        FleetSnapshot { agents: Vec::new(), timestamp }
+        FleetSnapshot {
+            agents: Vec::new(),
+            timestamp,
+        }
     }
 
     /// Number of agents in the snapshot.
@@ -446,8 +462,14 @@ impl ConsolidatedTile {
         last_seen: u64,
     ) -> Self {
         ConsolidatedTile {
-            start_q, start_r, end_q, end_r,
-            heading, visit_count, first_seen, last_seen,
+            start_q,
+            start_r,
+            end_q,
+            end_r,
+            heading,
+            visit_count,
+            first_seen,
+            last_seen,
         }
     }
 
@@ -497,10 +519,7 @@ impl ConsolidatedTile {
 /// let tiles = consolidate_paths(&snapshots, 2);
 /// assert!(!tiles.is_empty());
 /// ```
-pub fn consolidate_paths(
-    recent: &[FleetSnapshot],
-    tile_threshold: usize,
-) -> Vec<ConsolidatedTile> {
+pub fn consolidate_paths(recent: &[FleetSnapshot], tile_threshold: usize) -> Vec<ConsolidatedTile> {
     if recent.len() < 2 || tile_threshold < 2 {
         return Vec::new();
     }
@@ -514,8 +533,9 @@ pub fn consolidate_paths(
 
     for agent_idx in 0..max_agents {
         // Extract this agent's trajectory
-        let trajectory: Vec<_> = recent.iter()
-            .filter_map(|snap| snap.agents.get(agent_idx).map(|a| (a.clone(), snap.timestamp)))
+        let trajectory: Vec<_> = recent
+            .iter()
+            .filter_map(|snap| snap.agents.get(agent_idx).map(|a| (*a, snap.timestamp)))
             .collect();
 
         if trajectory.len() < tile_threshold {
@@ -527,7 +547,9 @@ pub fn consolidate_paths(
         for (agent, _) in &trajectory {
             heading_counts[agent.heading.step() as usize] += 1;
         }
-        let dominant_step = heading_counts.iter().enumerate()
+        let dominant_step = heading_counts
+            .iter()
+            .enumerate()
             .max_by_key(|(_, &count)| count)
             .map(|(step, _)| step as u8)
             .unwrap_or(0);
@@ -537,8 +559,10 @@ pub fn consolidate_paths(
         let last = &trajectory.last().unwrap();
 
         tiles.push(ConsolidatedTile::new(
-            first.0.q, first.0.r,
-            last.0.q, last.0.r,
+            first.0.q,
+            first.0.r,
+            last.0.q,
+            last.0.r,
             dominant_heading,
             trajectory.len(),
             first.1,
@@ -572,17 +596,35 @@ mod tests {
     #[test]
     fn test_from_radians_cardinal() {
         assert_eq!(HeadDirection::from_radians(0.0).step(), 0);
-        assert_eq!(HeadDirection::from_radians(std::f64::consts::FRAC_PI_2).step(), 3);
+        assert_eq!(
+            HeadDirection::from_radians(std::f64::consts::FRAC_PI_2).step(),
+            3
+        );
         assert_eq!(HeadDirection::from_radians(std::f64::consts::PI).step(), 6);
-        assert_eq!(HeadDirection::from_radians(3.0 * std::f64::consts::FRAC_PI_2).step(), 9);
+        assert_eq!(
+            HeadDirection::from_radians(3.0 * std::f64::consts::FRAC_PI_2).step(),
+            9
+        );
     }
 
     #[test]
     fn test_from_radians_hex() {
-        assert_eq!(HeadDirection::from_radians(std::f64::consts::FRAC_PI_3).step(), 2);
-        assert_eq!(HeadDirection::from_radians(2.0 * std::f64::consts::FRAC_PI_3).step(), 4);
-        assert_eq!(HeadDirection::from_radians(4.0 * std::f64::consts::FRAC_PI_3).step(), 8);
-        assert_eq!(HeadDirection::from_radians(5.0 * std::f64::consts::FRAC_PI_3).step(), 10);
+        assert_eq!(
+            HeadDirection::from_radians(std::f64::consts::FRAC_PI_3).step(),
+            2
+        );
+        assert_eq!(
+            HeadDirection::from_radians(2.0 * std::f64::consts::FRAC_PI_3).step(),
+            4
+        );
+        assert_eq!(
+            HeadDirection::from_radians(4.0 * std::f64::consts::FRAC_PI_3).step(),
+            8
+        );
+        assert_eq!(
+            HeadDirection::from_radians(5.0 * std::f64::consts::FRAC_PI_3).step(),
+            10
+        );
     }
 
     #[test]
@@ -734,7 +776,8 @@ mod tests {
     #[test]
     fn test_agent_pack_unpack_edge_cases() {
         // Max values
-        let max_agent = PositionedAgent::new(u16::MAX, u16::MAX, HeadDirection::from_step(11), u8::MAX);
+        let max_agent =
+            PositionedAgent::new(u16::MAX, u16::MAX, HeadDirection::from_step(11), u8::MAX);
         let packed = max_agent.to_u64();
         let unpacked = PositionedAgent::from_u64(packed);
         assert_eq!(max_agent, unpacked);
@@ -852,7 +895,10 @@ mod tests {
     fn test_consolidate_below_threshold() {
         let snapshots = vec![
             FleetSnapshot::new(vec![PositionedAgent::origin()], 0),
-            FleetSnapshot::new(vec![PositionedAgent::new(0, 1, HeadDirection::default(), 0)], 100),
+            FleetSnapshot::new(
+                vec![PositionedAgent::new(0, 1, HeadDirection::default(), 0)],
+                100,
+            ),
         ];
         // Threshold is 3, only 2 snapshots → no tiles
         let tiles = consolidate_paths(&snapshots, 3);
@@ -862,15 +908,18 @@ mod tests {
     #[test]
     fn test_consolidate_basic() {
         let snapshots = vec![
-            FleetSnapshot::new(vec![
-                PositionedAgent::new(0, 0, HeadDirection::from_step(3), 10),
-            ], 0),
-            FleetSnapshot::new(vec![
-                PositionedAgent::new(0, 1, HeadDirection::from_step(3), 10),
-            ], 100),
-            FleetSnapshot::new(vec![
-                PositionedAgent::new(0, 2, HeadDirection::from_step(3), 10),
-            ], 200),
+            FleetSnapshot::new(
+                vec![PositionedAgent::new(0, 0, HeadDirection::from_step(3), 10)],
+                0,
+            ),
+            FleetSnapshot::new(
+                vec![PositionedAgent::new(0, 1, HeadDirection::from_step(3), 10)],
+                100,
+            ),
+            FleetSnapshot::new(
+                vec![PositionedAgent::new(0, 2, HeadDirection::from_step(3), 10)],
+                200,
+            ),
         ];
         let tiles = consolidate_paths(&snapshots, 2);
         assert_eq!(tiles.len(), 1);
@@ -886,10 +935,15 @@ mod tests {
 
     #[test]
     fn test_consolidate_multi_agent() {
-        let make_snap = |t: u64, q0: u16, r0: u16, q1: u16, r1: u16| FleetSnapshot::new(vec![
-            PositionedAgent::new(q0, r0, HeadDirection::from_step(0), 5),
-            PositionedAgent::new(q1, r1, HeadDirection::from_step(3), 5),
-        ], t);
+        let make_snap = |t: u64, q0: u16, r0: u16, q1: u16, r1: u16| {
+            FleetSnapshot::new(
+                vec![
+                    PositionedAgent::new(q0, r0, HeadDirection::from_step(0), 5),
+                    PositionedAgent::new(q1, r1, HeadDirection::from_step(3), 5),
+                ],
+                t,
+            )
+        };
 
         let snapshots = vec![
             make_snap(0, 0, 0, 10, 10),

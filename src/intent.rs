@@ -12,14 +12,46 @@ pub fn encode_intent(description: &str) -> IntentVector {
 
     // Heuristic keyword matching
     let patterns: &[(&[&str], Channel, f64)] = &[
-        (&["deadline", "urgent", "asap", "hurry", "rush"], Channel::Stakes, 0.9),
-        (&["risk", "danger", "unsafe", "critical", "hazard"], Channel::Stakes, 0.95),
-        (&["safety", "safe", "verify", "certif", "compliance"], Channel::Boundary, 0.9),
-        (&["team", "together", "collaborate", "we need"], Channel::Social, 0.9),
-        (&["code", "api", "system", "algorithm", "implement"], Channel::Pattern, 0.85),
-        (&["research", "study", "hypothesis", "experiment"], Channel::Paradigm, 0.9),
-        (&["deploy", "ship", "release", "launch"], Channel::Process, 0.85),
-        (&["design", "architect", "plan", "blueprint"], Channel::DeepStructure, 0.85),
+        (
+            &["deadline", "urgent", "asap", "hurry", "rush"],
+            Channel::Stakes,
+            0.9,
+        ),
+        (
+            &["risk", "danger", "unsafe", "critical", "hazard"],
+            Channel::Stakes,
+            0.95,
+        ),
+        (
+            &["safety", "safe", "verify", "certif", "compliance"],
+            Channel::Boundary,
+            0.9,
+        ),
+        (
+            &["team", "together", "collaborate", "we need"],
+            Channel::Social,
+            0.9,
+        ),
+        (
+            &["code", "api", "system", "algorithm", "implement"],
+            Channel::Pattern,
+            0.85,
+        ),
+        (
+            &["research", "study", "hypothesis", "experiment"],
+            Channel::Paradigm,
+            0.9,
+        ),
+        (
+            &["deploy", "ship", "release", "launch"],
+            Channel::Process,
+            0.85,
+        ),
+        (
+            &["design", "architect", "plan", "blueprint"],
+            Channel::DeepStructure,
+            0.85,
+        ),
     ];
 
     let mut matched = false;
@@ -52,7 +84,11 @@ pub struct AlignmentReport {
 
 impl std::fmt::Display for AlignmentReport {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let status = if self.is_safe { "✓ SAFE" } else { "✗ GROUNDED" };
+        let status = if self.is_safe {
+            "✓ SAFE"
+        } else {
+            "✗ GROUNDED"
+        };
         write!(
             f,
             "{} (sim={:.3}, dist={:.3}, margin={:.3})",
@@ -72,7 +108,10 @@ pub fn check_alignment(sender: &IntentVector, receiver: &IntentVector) -> Alignm
         if dist > sender.tolerance[i] + 0.1 {
             warnings.push(format!(
                 "C{} ({}): distance {:.3} exceeds tolerance {:.3}",
-                i + 1, ch.label(), dist, sender.tolerance[i]
+                i + 1,
+                ch.label(),
+                dist,
+                sender.tolerance[i]
             ));
         }
     }

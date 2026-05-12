@@ -18,23 +18,43 @@ pub struct BeamMaterial {
 impl BeamMaterial {
     /// Steel: E=200 GPa — critical systems, zero tolerance
     pub fn steel() -> Self {
-        Self { youngs_modulus: 200.0, density: 7.8, yield_strength: 600.0 }
+        Self {
+            youngs_modulus: 200.0,
+            density: 7.8,
+            yield_strength: 600.0,
+        }
     }
     /// Fiberglass: E=30 GPa — important but not life-critical
     pub fn fiberglass() -> Self {
-        Self { youngs_modulus: 30.0, density: 2.0, yield_strength: 200.0 }
+        Self {
+            youngs_modulus: 30.0,
+            density: 2.0,
+            yield_strength: 200.0,
+        }
     }
     /// Oak: E=12 GPa — moderate importance
     pub fn oak() -> Self {
-        Self { youngs_modulus: 12.0, density: 0.7, yield_strength: 80.0 }
+        Self {
+            youngs_modulus: 12.0,
+            density: 0.7,
+            yield_strength: 80.0,
+        }
     }
     /// Cedar: E=6 GPa — flexible, advisory
     pub fn cedar() -> Self {
-        Self { youngs_modulus: 6.0, density: 0.4, yield_strength: 40.0 }
+        Self {
+            youngs_modulus: 6.0,
+            density: 0.4,
+            yield_strength: 40.0,
+        }
     }
     /// Rubber: E=0.01 GPa — highly flexible, informational only
     pub fn rubber() -> Self {
-        Self { youngs_modulus: 0.01, density: 1.1, yield_strength: 10.0 }
+        Self {
+            youngs_modulus: 0.01,
+            density: 1.1,
+            yield_strength: 10.0,
+        }
     }
 
     /// Maximum deflection under load — maps to tolerance
@@ -43,7 +63,7 @@ impl BeamMaterial {
     /// Steel (E=200) → tolerance ~0.05, Rubber (E=0.01) → tolerance ~1.0
     pub fn max_tolerance(&self, safety_factor: f64) -> f64 {
         let normalized_stiffness = self.youngs_modulus / 200.0; // 0-1 scale
-        // Use logarithmic mapping: stiff materials get tight tolerance
+                                                                // Use logarithmic mapping: stiff materials get tight tolerance
         let tolerance = 0.01 + (1.0 - normalized_stiffness) * 0.99;
         (tolerance / safety_factor).clamp(0.01, 1.0)
     }
@@ -117,10 +137,10 @@ pub fn classify_precision(stakes: f64, value_range: f64) -> PrecisionClass {
 pub fn stakes_to_material(stakes: f64) -> BeamMaterial {
     match stakes {
         s if s > 0.75 => BeamMaterial::steel(),
-        s if s > 0.5  => BeamMaterial::fiberglass(),
+        s if s > 0.5 => BeamMaterial::fiberglass(),
         s if s > 0.25 => BeamMaterial::oak(),
-        s if s > 0.1  => BeamMaterial::cedar(),
-        _              => BeamMaterial::rubber(),
+        s if s > 0.1 => BeamMaterial::cedar(),
+        _ => BeamMaterial::rubber(),
     }
 }
 
@@ -156,10 +176,18 @@ impl SoABatch {
     /// Create from raw constraint tuples: (value, lower, upper, stakes)
     pub fn from_constraints(constraints: &[(f64, f64, f64, f64)]) -> Self {
         let mut batch = SoABatch {
-            int8_values: Vec::new(), int8_lowers: Vec::new(), int8_uppers: Vec::new(),
-            int16_values: Vec::new(), int16_lowers: Vec::new(), int16_uppers: Vec::new(),
-            int32_values: Vec::new(), int32_lowers: Vec::new(), int32_uppers: Vec::new(),
-            dual_values: Vec::new(), dual_lowers: Vec::new(), dual_uppers: Vec::new(),
+            int8_values: Vec::new(),
+            int8_lowers: Vec::new(),
+            int8_uppers: Vec::new(),
+            int16_values: Vec::new(),
+            int16_lowers: Vec::new(),
+            int16_uppers: Vec::new(),
+            int32_values: Vec::new(),
+            int32_lowers: Vec::new(),
+            int32_uppers: Vec::new(),
+            dual_values: Vec::new(),
+            dual_lowers: Vec::new(),
+            dual_uppers: Vec::new(),
         };
 
         for &(value, lower, upper, stakes) in constraints {
@@ -195,16 +223,22 @@ impl SoABatch {
         let mut results = Vec::new();
 
         for i in 0..self.int8_values.len() {
-            results.push(self.int8_values[i] >= self.int8_lowers[i] && 
-                         self.int8_values[i] <= self.int8_uppers[i]);
+            results.push(
+                self.int8_values[i] >= self.int8_lowers[i]
+                    && self.int8_values[i] <= self.int8_uppers[i],
+            );
         }
         for i in 0..self.int16_values.len() {
-            results.push(self.int16_values[i] >= self.int16_lowers[i] && 
-                         self.int16_values[i] <= self.int16_uppers[i]);
+            results.push(
+                self.int16_values[i] >= self.int16_lowers[i]
+                    && self.int16_values[i] <= self.int16_uppers[i],
+            );
         }
         for i in 0..self.int32_values.len() {
-            results.push(self.int32_values[i] >= self.int32_lowers[i] && 
-                         self.int32_values[i] <= self.int32_uppers[i]);
+            results.push(
+                self.int32_values[i] >= self.int32_lowers[i]
+                    && self.int32_values[i] <= self.int32_uppers[i],
+            );
         }
         for i in 0..self.dual_values.len() {
             let v = self.dual_values[i];
@@ -268,23 +302,31 @@ mod tests {
     fn test_steel_tolerance() {
         let mat = BeamMaterial::steel();
         let tol = mat.max_tolerance(1.0);
-        assert!(tol < 0.1, "Steel should have very tight tolerance, got {}", tol);
+        assert!(
+            tol < 0.1,
+            "Steel should have very tight tolerance, got {}",
+            tol
+        );
     }
 
     #[test]
     fn test_rubber_tolerance() {
         let mat = BeamMaterial::rubber();
         let tol = mat.max_tolerance(1.0);
-        assert!(tol > 0.5, "Rubber should have very loose tolerance, got {}", tol);
+        assert!(
+            tol > 0.5,
+            "Rubber should have very loose tolerance, got {}",
+            tol
+        );
     }
 
     #[test]
     fn test_soa_batch_check_all() {
         let constraints: Vec<(f64, f64, f64, f64)> = vec![
-            (5.0, 0.0, 10.0, 0.1),   // INT8
-            (50.0, 0.0, 100.0, 0.3),  // INT16
-            (500.0, 0.0, 1000.0, 0.6),// INT32
-            (5000.0, 0.0, 10000.0, 0.8),// DUAL
+            (5.0, 0.0, 10.0, 0.1),       // INT8
+            (50.0, 0.0, 100.0, 0.3),     // INT16
+            (500.0, 0.0, 1000.0, 0.6),   // INT32
+            (5000.0, 0.0, 10000.0, 0.8), // DUAL
         ];
         let batch = SoABatch::from_constraints(&constraints);
         let results = batch.check_all();
@@ -295,15 +337,27 @@ mod tests {
     fn test_memory_reduction() {
         // AV mix: 75% INT8, 15% INT16, 8% INT32, 2% DUAL
         let mut constraints = Vec::new();
-        for _ in 0..7500 { constraints.push((5.0, 0.0, 10.0, 0.1)); }
-        for _ in 0..1500 { constraints.push((500.0, 0.0, 1000.0, 0.3)); }
-        for _ in 0..800  { constraints.push((5000.0, 0.0, 10000.0, 0.6)); }
-        for _ in 0..200  { constraints.push((50000.0, 0.0, 100000.0, 0.8)); }
-        
+        for _ in 0..7500 {
+            constraints.push((5.0, 0.0, 10.0, 0.1));
+        }
+        for _ in 0..1500 {
+            constraints.push((500.0, 0.0, 1000.0, 0.3));
+        }
+        for _ in 0..800 {
+            constraints.push((5000.0, 0.0, 10000.0, 0.6));
+        }
+        for _ in 0..200 {
+            constraints.push((50000.0, 0.0, 100000.0, 0.8));
+        }
+
         let batch = SoABatch::from_constraints(&constraints);
         let (actual, baseline) = batch.memory_stats();
         let reduction = 1.0 - (actual as f64 / baseline as f64);
-        assert!(reduction > 0.5, "AV mix should save >50%% memory, got {:.1}%%", reduction*100.0);
+        assert!(
+            reduction > 0.5,
+            "AV mix should save >50%% memory, got {:.1}%%",
+            reduction * 100.0
+        );
     }
 
     #[test]
@@ -317,10 +371,13 @@ mod tests {
                 (v, lo, hi, 0.1) // INT8 precision
             })
             .collect();
-        
+
         let batch = SoABatch::from_constraints(&constraints);
         let results = batch.check_all();
-        assert!(results.iter().all(|&r| r), "All in-range values should pass");
+        assert!(
+            results.iter().all(|&r| r),
+            "All in-range values should pass"
+        );
     }
 
     #[test]
@@ -328,7 +385,12 @@ mod tests {
         // Rushed messages should have tighter effective tolerance
         let base = compute_tolerance(0.5, 1.0);
         let rushed = compute_draft(base, 0.8, 0.5);
-        assert!(rushed <= base, "Rushed draft should be ≤ base, got {} > {}", rushed, base);
+        assert!(
+            rushed <= base,
+            "Rushed draft should be ≤ base, got {} > {}",
+            rushed,
+            base
+        );
     }
 
     #[test]

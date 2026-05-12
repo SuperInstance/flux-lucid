@@ -18,13 +18,13 @@
 //! 5. **Speed Beats Truth**: In real-time domains, survival forbids accurate models.
 //!    A satisficer in 50ms beats an optimizer in 2000ms.
 
+pub mod beam_tolerance;
+pub mod head_direction;
 pub mod intent;
 pub mod intent_compilation;
 pub mod intent_emitter;
-pub mod beam_tolerance;
-pub mod soa_emitter;
 pub mod navigation;
-pub mod head_direction;
+pub mod soa_emitter;
 
 // Re-export core types from sub-crates
 pub use constraint_theory_llvm as llvm;
@@ -142,15 +142,26 @@ impl IntentVector {
 
     /// Cosine similarity between two intent vectors.
     pub fn cosine_similarity(&self, other: &IntentVector) -> f64 {
-        let dot: f64 = self.values.iter().zip(other.values.iter()).map(|(a, b)| a * b).sum();
+        let dot: f64 = self
+            .values
+            .iter()
+            .zip(other.values.iter())
+            .map(|(a, b)| a * b)
+            .sum();
         let norm_a: f64 = self.values.iter().map(|x| x * x).sum::<f64>().sqrt();
         let norm_b: f64 = other.values.iter().map(|x| x * x).sum::<f64>().sqrt();
-        if norm_a == 0.0 || norm_b == 0.0 { 0.0 } else { dot / (norm_a * norm_b) }
+        if norm_a == 0.0 || norm_b == 0.0 {
+            0.0
+        } else {
+            dot / (norm_a * norm_b)
+        }
     }
 
     /// Euclidean distance between two intent vectors.
     pub fn euclidean_distance(&self, other: &IntentVector) -> f64 {
-        self.values.iter().zip(other.values.iter())
+        self.values
+            .iter()
+            .zip(other.values.iter())
             .map(|(a, b)| (a - b).powi(2))
             .sum::<f64>()
             .sqrt()
@@ -159,7 +170,10 @@ impl IntentVector {
     /// Draft: how deep this intent's requirements are.
     /// Higher draft = more shared context needed for safe communication.
     pub fn draft(&self) -> f64 {
-        let total: f64 = self.values.iter().zip(self.tolerance.iter())
+        let total: f64 = self
+            .values
+            .iter()
+            .zip(self.tolerance.iter())
             .map(|(v, t)| v / t.max(0.001))
             .sum();
         (total / 9.0).min(2.0) / 10.0
@@ -167,7 +181,10 @@ impl IntentVector {
 
     /// The dominant channel (highest salience).
     pub fn dominant_channel(&self) -> Channel {
-        let idx = self.values.iter().enumerate()
+        let idx = self
+            .values
+            .iter()
+            .enumerate()
             .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
             .map(|(i, _)| i)
             .unwrap_or(0);

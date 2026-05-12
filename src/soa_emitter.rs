@@ -86,7 +86,7 @@ pub struct SoAConstraintBatch {
 /// - stakes > 0.5  OR value range > 127   → INT32
 /// - stakes > 0.25 OR value range > 15    → INT16
 /// - otherwise                           → INT8
-pub fn classify(value: f64, lo: f64, hi: f64, stakes: f64) -> PrecisionClass {
+pub fn classify(_value: f64, lo: f64, hi: f64, stakes: f64) -> PrecisionClass {
     let range = (hi - lo).abs();
     if stakes > 0.75 || range > 32000.0 {
         PrecisionClass::DUAL
@@ -202,8 +202,10 @@ impl SoAConstraintBatch {
             + self.int16_data.len() * std::mem::size_of::<i16>()
             + self.int32_data.len() * std::mem::size_of::<i32>()
             + self.dual_data.len() * std::mem::size_of::<i32>()
-            + (self.int8_stakes.len() + self.int16_stakes.len()
-                + self.int32_stakes.len() + self.dual_stakes.len())
+            + (self.int8_stakes.len()
+                + self.int16_stakes.len()
+                + self.int32_stakes.len()
+                + self.dual_stakes.len())
                 * std::mem::size_of::<f64>();
 
         // If all were INT32: total constraints × 3 i32s + total × 1 f64 stake
@@ -300,7 +302,10 @@ mod tests {
         assert_eq!(stats.int16_count, 30);
         assert_eq!(stats.int32_count, 15);
         assert_eq!(stats.dual_count, 5);
-        assert_eq!(stats.int8_count + stats.int16_count + stats.int32_count + stats.dual_count, 100);
+        assert_eq!(
+            stats.int8_count + stats.int16_count + stats.int32_count + stats.dual_count,
+            100
+        );
 
         let savings = stats.savings_fraction();
         // INT8 dominates → should see ~60%+ savings on data portion

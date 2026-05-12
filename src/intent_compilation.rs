@@ -8,7 +8,7 @@
 //! we can emit cheaper code for the majority and reserve expensive code
 //! for the critical few.
 
-use crate::{Channel, IntentVector, navigation::Fitting};
+use crate::{navigation::Fitting, Channel, IntentVector};
 
 /// A constraint triple: value must be in [lower, upper].
 #[derive(Debug, Clone, Copy)]
@@ -73,9 +73,7 @@ pub struct ClassificationResult {
 }
 
 /// Classify constraints by their intent profiles.
-pub fn classify_constraints(
-    profiles: &[IntentVector],
-) -> ClassificationResult {
+pub fn classify_constraints(profiles: &[IntentVector]) -> ClassificationResult {
     let mut advisory = 0;
     let mut operational = 0;
     let mut technical = 0;
@@ -136,22 +134,18 @@ pub fn check_constraint(constraint: &Constraint, class: &ConstraintClass) -> Con
                 class: *class,
             }
         }
-        ConstraintClass::Operational => {
-            ConstraintResult {
-                pass: base_pass,
-                exact: true,
-                redundancy_checked: false,
-                class: *class,
-            }
-        }
-        ConstraintClass::Technical => {
-            ConstraintResult {
-                pass: base_pass,
-                exact: true,
-                redundancy_checked: false,
-                class: *class,
-            }
-        }
+        ConstraintClass::Operational => ConstraintResult {
+            pass: base_pass,
+            exact: true,
+            redundancy_checked: false,
+            class: *class,
+        },
+        ConstraintClass::Technical => ConstraintResult {
+            pass: base_pass,
+            exact: true,
+            redundancy_checked: false,
+            class: *class,
+        },
         ConstraintClass::SafetyCritical => {
             // Dual redundant check: compute twice using different paths
             let check_a = constraint.value >= constraint.lower;
@@ -179,10 +173,7 @@ pub struct ConstraintResult {
 }
 
 /// Batch check constraints with mixed precision.
-pub fn batch_check(
-    constraints: &[Constraint],
-    profiles: &[IntentVector],
-) -> BatchResult {
+pub fn batch_check(constraints: &[Constraint], profiles: &[IntentVector]) -> BatchResult {
     assert_eq!(constraints.len(), profiles.len());
 
     let mut passed = 0;
@@ -253,7 +244,11 @@ mod tests {
 
     #[test]
     fn test_advisory_check() {
-        let c = Constraint { value: 50, lower: 0, upper: 100 };
+        let c = Constraint {
+            value: 50,
+            lower: 0,
+            upper: 100,
+        };
         let result = check_constraint(&c, &ConstraintClass::Advisory);
         assert!(result.pass);
         assert!(!result.exact);
@@ -262,7 +257,11 @@ mod tests {
 
     #[test]
     fn test_safety_critical_check() {
-        let c = Constraint { value: 50, lower: 0, upper: 100 };
+        let c = Constraint {
+            value: 50,
+            lower: 0,
+            upper: 100,
+        };
         let result = check_constraint(&c, &ConstraintClass::SafetyCritical);
         assert!(result.pass);
         assert!(result.exact);
@@ -271,7 +270,11 @@ mod tests {
 
     #[test]
     fn test_safety_critical_failure() {
-        let c = Constraint { value: 150, lower: 0, upper: 100 };
+        let c = Constraint {
+            value: 150,
+            lower: 0,
+            upper: 100,
+        };
         let result = check_constraint(&c, &ConstraintClass::SafetyCritical);
         assert!(!result.pass);
     }
@@ -279,7 +282,11 @@ mod tests {
     #[test]
     fn test_batch_mixed_precision() {
         let constraints: Vec<Constraint> = (0..100)
-            .map(|i| Constraint { value: i, lower: 0, upper: 99 })
+            .map(|i| Constraint {
+                value: i,
+                lower: 0,
+                upper: 99,
+            })
             .collect();
 
         let profiles: Vec<IntentVector> = (0..100)
@@ -331,12 +338,21 @@ mod tests {
             .collect();
 
         let result = classify_constraints(&profiles);
-        println!("AV mix: {} advisory, {} operational, {} technical, {} safety",
-            result.advisory, result.operational, result.technical, result.safety_critical);
-        println!("Throughput multiplier: {:.2}x", result.throughput_multiplier);
+        println!(
+            "AV mix: {} advisory, {} operational, {} technical, {} safety",
+            result.advisory, result.operational, result.technical, result.safety_critical
+        );
+        println!(
+            "Throughput multiplier: {:.2}x",
+            result.throughput_multiplier
+        );
 
         // Should be significant improvement
-        assert!(result.throughput_multiplier > 2.0, "Expected > 2x throughput gain, got {:.2}x", result.throughput_multiplier);
+        assert!(
+            result.throughput_multiplier > 2.0,
+            "Expected > 2x throughput gain, got {:.2}x",
+            result.throughput_multiplier
+        );
         assert_eq!(result.safety_critical, 20); // 2%
     }
 }

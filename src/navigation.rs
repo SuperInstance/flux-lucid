@@ -21,10 +21,15 @@ pub enum Fitting {
 impl Fitting {
     /// Select fitting based on stakes level [0, 1].
     pub fn from_stakes(stakes: f64) -> Self {
-        if stakes < 0.25 { Fitting::HoseClamp }
-        else if stakes < 0.5 { Fitting::IndustrialFitting }
-        else if stakes < 0.75 { Fitting::JicFitting }
-        else { Fitting::DeepSeaSeal }
+        if stakes < 0.25 {
+            Fitting::HoseClamp
+        } else if stakes < 0.5 {
+            Fitting::IndustrialFitting
+        } else if stakes < 0.75 {
+            Fitting::JicFitting
+        } else {
+            Fitting::DeepSeaSeal
+        }
     }
 
     /// Required tolerance for this fitting.
