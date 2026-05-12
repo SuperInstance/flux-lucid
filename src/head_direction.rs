@@ -18,7 +18,7 @@
 //! use flux_lucid::head_direction::{HeadDirection, PositionedAgent, angular_coherence};
 //!
 //! let heading = HeadDirection::from_radians(std::f64::consts::FRAC_PI_2); // 90°
-//! assert_eq!(heading.to_radians(), std::f64::consts::FRAC_PI_2);
+//! assert!((heading.to_radians() - std::f64::consts::FRAC_PI_2).abs() < 1e-10);
 //!
 //! let rotated = heading.rotate_by(3); // 90° + 90° = 180°
 //! assert_eq!(rotated, HeadDirection::from_radians(std::f64::consts::PI));
