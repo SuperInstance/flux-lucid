@@ -27,6 +27,7 @@ pub mod intent_emitter;
 pub mod navigation;
 pub mod simulation_first;
 pub mod soa_emitter;
+pub mod spectral;
 
 // Re-export core types from sub-crates
 pub use constraint_theory_llvm as llvm;
