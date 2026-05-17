@@ -1,8 +1,21 @@
 # flux-lucid
 
-**Unified constraint theory ecosystem — one dependency to rule them all.**
+**One crate for constraint compilation, fleet coordination, and intent communication.**
 
-Pulls together constraint compilation (CDCL → LLVM IR → AVX-512), fleet coordination (GL(9) zero-holonomy consensus), and 9-channel intent communication into a single crate.
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)]()
+
+## Why?
+
+When agents in a fleet need to agree on what's true, they need three things: a way to express constraints with the right precision, a way to check alignment without a full consensus round, and a way to communicate intent so the receiver knows how seriously to take a message. flux-lucid gives you all three in one dependency.
+
+Use this when you're building multi-agent systems that need verifiable constraint checking with precision that matches the stakes — steel-level precision for life-critical constraints, rubber-level for exploratory ones.
+
+## Install
+
+```toml
+[dependencies]
+flux-lucid = { git = "https://github.com/SuperInstance/flux-lucid" }
+```
 
 ## Quick Start
 
@@ -123,6 +136,13 @@ DUAL-classified constraints use two independent execution paths:
 2. **Path B**: XOR-based signed→unsigned conversion (`v ^ 0x80000000`)
 
 Both paths must agree. This catches silicon-level errors (rowhammer, cosmic ray bit flips) without doubling execution time — the XOR trick is branchless and pipeline-friendly.
+
+## Related
+
+- **[spectral-conservation](https://github.com/SuperInstance/spectral-conservation)** — Spectral invariant tracking (flux-lucid dependency)
+- **[constraint-theory-core](https://github.com/cocapn/constraint-theory-core)** — Eisenstein integer precision (crates.io)
+- **[dodecet-encoder](https://github.com/SuperInstance/dodecet-encoder)** — 12-bit perception encoding
+- **[ASSEMBLY-GUIDE](https://github.com/SuperInstance/plato-training/blob/master/ASSEMBLY-GUIDE.md)** — Full ecosystem assembly guide
 
 ## Cargo Features
 
