@@ -16,7 +16,7 @@ constraint-theory-llvm = "0.1.1"
 # Fleet coordination with GL(9) ZHC
 holonomy-consensus = "0.1.1"
 # Spectral first integral conservation tracker
-spectral-conservation = { path = "../spectral-conservation" }
+spectral-conservation = "0.1"
 nalgebra = "0.33"
 serde = { version = "1.0", features = ["derive"] }
 
